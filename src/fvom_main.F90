@@ -60,6 +60,8 @@ real(kind=WP),  save,  target                 :: sumSi1, sumSi2
 #endif
 
 type(t_mesh),             target, save :: mesh
+character(LEN=MPI_MAX_LIBRARY_VERSION_STRING) :: mpi_version_txt
+integer mpi_version_len
 
 ! kh 11.11.21 multi FESOM group loop parallelization
 integer             :: npes_fesom_world
@@ -285,13 +287,7 @@ integer             :: mype_check
     call clock_newyear                        ! check if it is a new year
     if (mype==0) t6=MPI_Wtime()
     !___CREATE NEW RESTART FILE IF APPLICABLE___________________________________
-    ! The interface to the restart module is made via call restart !
-    ! The inputs are: istep, l_write, l_create
-    ! if istep is not zero it will be decided whether restart shall be written
-    ! if l_write  is TRUE the restart will be forced
-    ! if l_read the restart will be read
-    ! as an example, for reading restart one does: call restart(0, .false., .false., .true.)
-    call restart(0, .false., r_restart, mesh) ! istep, l_write, l_read
+    call restart(0, r_restart, mesh)
     if (mype==0) t7=MPI_Wtime()
     
     ! store grid information into netcdf file
@@ -475,7 +471,7 @@ integer             :: mype_check
         end if
 
         t5 = MPI_Wtime()
-        call restart(n, .false., .false., mesh)
+        call restart(n, .false., mesh)
         t6 = MPI_Wtime()
         
         rtime_fullice       = rtime_fullice       + t2 - t1
@@ -488,6 +484,7 @@ integer             :: mype_check
 ! kh 11.11.21 multi FESOM group loop parallelization
     if(my_fesom_group == 0) then    
         call finalize_output()
+	call finalize_restart()
     end if
     
     !___FINISH MODEL RUN________________________________________________________

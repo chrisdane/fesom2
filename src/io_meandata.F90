@@ -172,6 +172,11 @@ CASE ('ssh       ')
 CASE ('vve_5     ')
     call def_stream(nod2D, myDim_nod2D, 'vve_5',    'vertical velocity at 5th level', 'm/s',    Wvel(5,:),                 io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
     
+CASE ('ssh_rhs       ')
+    call def_stream(nod2D, myDim_nod2D, 'ssh_rhs',      'ssh rhs',          '?',      ssh_rhs,                     io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+CASE ('ssh_rhs_old   ')
+    call def_stream(nod2D, myDim_nod2D, 'ssh_rhs_old',      'ssh rhs',          '?',      ssh_rhs_old,                     io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
 !___________________________________________________________________________________________________________________________________
 ! output sea ice 
 CASE ('uice      ')
@@ -192,11 +197,15 @@ CASE ('m_ice     ')
     end if
 CASE ('thdgr     ')
     if (use_ice) then
-    call def_stream(nod2D, myDim_nod2D, 'thdgr',    'growth rate ice',                 'm/s',    thdgr(1:myDim_nod2D),      io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+    call def_stream(nod2D, myDim_nod2D, 'thdgr',    'thermodynamic growth rate ice',    'm/s',    thdgr(1:myDim_nod2D),      io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
     end if
 CASE ('thdgrsn   ')
     if (use_ice) then
-    call def_stream(nod2D, myDim_nod2D, 'thdgrsn',  'growth rate ice',                 'm/s',    thdgrsn(1:myDim_nod2D),    io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+    call def_stream(nod2D, myDim_nod2D, 'thdgrsn',  'thermodynamic growth rate snow',   'm/s',    thdgrsn(1:myDim_nod2D),    io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+    end if
+CASE ('flice     ')
+    if (use_ice) then
+    call def_stream(nod2D, myDim_nod2D,  'flice',    'flooding growth rate ice',       'm/s',    flice(:),                  io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
     end if
 CASE ('m_snow    ')
     if (use_ice) then
@@ -1118,6 +1127,10 @@ subroutine write_mean(entry, entry_index)
        if(.not. allocated(entry%aux_r8)) allocate(entry%aux_r8(size2))
      end if
      do lev=1, size1
+#ifdef ENABLE_ALEPH_CRAYMPICH_WORKAROUNDS
+        ! aleph cray-mpich workaround
+        call MPI_Barrier(entry%comm, MPIERR)
+#endif
        if(.not. entry%is_elem_based) then
          call gather_nod2D (entry%local_values_r8_copy(lev,1:size(entry%local_values_r8_copy,dim=2)), entry%aux_r8, entry%root_rank, tag, entry%comm)
        else
@@ -1138,6 +1151,10 @@ subroutine write_mean(entry, entry_index)
        if(.not. allocated(entry%aux_r4)) allocate(entry%aux_r4(size2))
      end if
      do lev=1, size1
+#ifdef ENABLE_ALEPH_CRAYMPICH_WORKAROUNDS
+        ! aleph cray-mpich workaround
+        call MPI_Barrier(entry%comm, MPIERR)
+#endif
        if(.not. entry%is_elem_based) then
          call gather_real4_nod2D (entry%local_values_r4_copy(lev,1:size(entry%local_values_r4_copy,dim=2)), entry%aux_r4, entry%root_rank, tag, entry%comm)
        else

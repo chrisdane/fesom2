@@ -62,11 +62,11 @@ subroutine ice_TG_rhs(mesh)
     
     ! Velocities at nodes
     do elem=1,myDim_elem2D          !assembling rhs over elements
-        elnodes=elem2D_nodes(:,elem)
         !_______________________________________________________________________
         ! if cavity element skip it 
         if (ulevels(elem)>1) cycle
         
+        elnodes=elem2D_nodes(:,elem)
         !derivatives
         dx=gradient_sca(1:3,elem)
         dy=gradient_sca(4:6,elem)
@@ -549,12 +549,11 @@ subroutine ice_fem_fct(tr_array_id, mesh)
             m_ice(n)=m_icel(n)
         end do      
         do elem=1, myDim_elem2D
-            elnodes=elem2D_nodes(:,elem)
-            
             !___________________________________________________________________
             ! if cavity cycle over
             if(ulevels(elem)>1) cycle !LK89140
             
+            elnodes=elem2D_nodes(:,elem)
             do q=1,3
                 n=elnodes(q)  
                 m_ice(n)=m_ice(n)+icefluxes(elem,q)
@@ -568,12 +567,11 @@ subroutine ice_fem_fct(tr_array_id, mesh)
             a_ice(n)=a_icel(n)
         end do      
         do elem=1, myDim_elem2D
-            elnodes=elem2D_nodes(:,elem)
-            
             !___________________________________________________________________
             ! if cavity cycle over
             if(ulevels(elem)>1) cycle !LK89140
             
+            elnodes=elem2D_nodes(:,elem)
             do q=1,3
                 n=elnodes(q)  
                 a_ice(n)=a_ice(n)+icefluxes(elem,q)
@@ -588,7 +586,6 @@ subroutine ice_fem_fct(tr_array_id, mesh)
         end do      
         do elem=1, myDim_elem2D
             elnodes=elem2D_nodes(:,elem)
-            
             !___________________________________________________________________
             ! if cavity cycle over
             if(ulevels(elem)>1) cycle !LK89140
@@ -658,7 +655,10 @@ SUBROUTINE ice_mass_matrix_fill(mesh)
     DO elem=1,myDim_elem2D
         elnodes=elem2D_nodes(:,elem) 
         
-        !_______________________________________________________________________
+        !___________________________________________________________________
+        ! if cavity cycle over
+        if(ulevels(elem)>1) cycle
+        
         do n=1,3
             row=elnodes(n)
             if(row>myDim_nod2D) cycle
@@ -745,11 +745,12 @@ subroutine ice_TG_rhs_div(mesh)
 #endif /* (__oifs) */
   END DO
   do elem=1,myDim_elem2D          !assembling rhs over elements
-     elnodes=elem2D_nodes(:,elem)
      !___________________________________________________________________________
      ! if cavity element skip it 
      if (ulevels(elem)>1) cycle
      
+                  !! elem=myList_elem2D(m)
+     elnodes=elem2D_nodes(:,elem)
       !derivatives
      dx=gradient_sca(1:3,elem)
      dy=gradient_sca(4:6,elem)
